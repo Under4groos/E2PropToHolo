@@ -292,8 +292,7 @@ if( CurCount > AllCount){
         WE2PtoH.Menu.Count = WE2PtoH.Menu:AddControl( "Label", { Text = "Selected: 0", Description	= "" }  )
         WE2PtoH.Menu:AddControl( "Button", { Label = "Clear selected", Command = "PropToHolo_ClearSelect", Description = ""  } )
 
-        
-
+ 
 
 
         WE2PtoH.Menu:AddControl( "Label", { Text = "Save in folder {data/<path>}", Description	= "" }  )
