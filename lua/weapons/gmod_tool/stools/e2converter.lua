@@ -80,7 +80,13 @@ if(CLIENT) then
 
         return string.format( "%02iw_%id_%02ih_%02im_%02is", w, d, h, m, s )
     end
+    function _update_text()
+        if(WE2PtoH.Menu.Count != nil ) then 
 
+            WE2PtoH.Menu.Count:SetText("Selected: " .. #WE2PtoH.Props )
+        end 
+
+    end 
 
 
     -- function func_PropToHolo_distance( player, tool, args )
@@ -117,13 +123,14 @@ if(CLIENT) then
 @name
 @inputs
 @outputs
-@persist [Count]:number [DATA]:table [IDload  Cur IsHolo AllCount CurCount HoloAlpha]:number Local_Entity:entity
+@persist [Count]:number [DATA]:table [IDload  Cur  AllCount CurCount HoloAlpha TimeLoaded]:number Local_Entity:entity
 #by UnderKo https://vk.com/underko https://steamcommunity.com/id/UnderKo/
 interval(100)
 if(first()){
-    IsHolo = 1
+   
     AllCount = ]] .. table.Count(WE2PtoH.Props) .. [[ 
-    HoloAlpha = 1    
+    HoloAlpha = 1   
+    TimeLoaded = 0.1   
     holoCreate(0) 
     holoAng(0,entity():toWorld(ang()))
     holoPos(0,entity():toWorld(vec(0,0,10)))
@@ -136,7 +143,10 @@ if(first()){
 
         local E2_code_spawnh = 
 [[
-if( curtime() > Cur ){ Cur = curtime() + 0.1 IDload++ }
+if( curtime() > Cur )
+{ 
+    Cur = curtime() + TimeLoaded IDload++ 
+}
 if(!holoEntity(CurCount):isValid()){  
     local Tab = DATA[CurCount , table]     
     if(HoloAlpha){
@@ -204,7 +214,7 @@ if( CurCount > AllCount){
             count = count + 1
 
              
-            if( count > 1 ) then 
+            if( count >= 1 ) then 
                 push_ = push_ .. "  print(\"Loaded: " .. id .. " \")\n"
                 file.Append( name_file, changedE2(id ,push_)) 		
                 push_ = ""
@@ -226,8 +236,13 @@ if( CurCount > AllCount){
         end 
 
     end 
-
-	concommand.Add( "PropToHolo_convert", func_PropToHolo_convert )
+    function func_clear( AimEnt )
+        WE2PtoH.Props = {}
+        WE2PtoH.BaseProp = nil
+        _update_text() 
+    end 
+    
+	concommand.Add( "PropToHolo_ClearSelect", func_clear )
 
     local _vis = true
     function _draw__()
@@ -273,17 +288,28 @@ if( CurCount > AllCount){
 		-- 			Description = "Distance"}	 )
         WE2PtoH.Menu:AddControl( "Button", { Label = "Convert to E2", Command = "PropToHolo_convert", Description = ""  } )
         WE2PtoH.Menu:AddControl( "Button", { Label = "Draw 3D Box", Command = "PropToHolo_3Dbox", Description = ""  } )
-        WE2PtoH.Menu:AddControl( "Label", { Text = "Selected props", Description	= "" }  )
-       
-        WE2PtoH.Menu.Count = WE2PtoH.Menu:AddControl( "Label", { Text = "Count: 0", Description	= "" }  )
+        
+        WE2PtoH.Menu.Count = WE2PtoH.Menu:AddControl( "Label", { Text = "Selected: 0", Description	= "" }  )
+        WE2PtoH.Menu:AddControl( "Button", { Label = "Clear selected", Command = "PropToHolo_ClearSelect", Description = ""  } )
 
-        WE2PtoH.Menu:AddControl( "Label", { Text = "  Save in folder {data/<path>}", Description	= "" }  )
+        
+
+
+
+        WE2PtoH.Menu:AddControl( "Label", { Text = "Save in folder {data/<path>}", Description	= "" }  )
         WE2PtoH.Menu.Path = WE2PtoH.Menu:AddControl( "DTextEntry", {  }  )
         WE2PtoH.Menu.Path:SetText( "E2holoConvert" )
+
+        
+        WE2PtoH.Menu:AddControl( "Button", { Label = "Reset options", Command = "PropToHolo_RebuildMenu ", Description = ""  } )
+
+        WE2PtoH.Menu:AddControl( "DTextEntry", {  }  ):SetText( "https://github.com/Under4groos/E2PropToHolo" )
+
     end 
 
 	concommand.Add( "PropToHolo_RebuildMenu", _rebuild_menu )
     RunConsoleCommand( "PropToHolo_3Dbox")
+    RunConsoleCommand( "PropToHolo_RebuildMenu")
     cl_chat_log( "Reload menu" ) 
 end 
  
@@ -315,10 +341,7 @@ function TOOL:LeftClick( trace )
             _add_new_entity__(AimEnt)
             
         end 
-        if(WE2PtoH.Menu.Count != nil ) then 
-
-             WE2PtoH.Menu.Count:SetText("Count: " .. #WE2PtoH.Props )
-        end 
+        _update_text()
     end 	
 end 
 function TOOL:Holster( trace, direction )
@@ -350,14 +373,14 @@ function TOOL:Reload( trace )
             WE2PtoH.BaseProp = nil
         end 
     else    
-        WE2PtoH.Props = {}
-        WE2PtoH.BaseProp = nil
+        RunConsoleCommand( "PropToHolo_ClearSelect")
     end 
-     
+    _update_text() 
 end
 function TOOL.BuildCPanel( Panel )
     WE2PtoH.Menu = Panel
-    RunConsoleCommand( "PropToHolo_RebuildMenu")
+    RunConsoleCommand( "PropToHolo_RebuildMenu") 
+    _update_text() 
 end
 
  
