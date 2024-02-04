@@ -166,7 +166,9 @@ if( CurCount > AllCount){
         local id = 0
         
         for it, item in pairs(WE2PtoH.Props) do
-
+            if( item == nil || !item:IsValid() ) then 
+                continue
+            end 
             item.entity = item
             item.position = item:GetPos()
             item.Ang =  AngleMathRand(item:GetAngles()   ) 
