@@ -2,10 +2,7 @@ TOOL.Category		= "Wire Expression2 "
 TOOL.Name			= "#PropToHolo"
 TOOL.Command		= nil
 TOOL.ConfigName		= ""
-
-TOOL.ClientConVar[ "PropToHolo_distance" ] 			= "100"
-
- 
+// wire_holograms_modelany 3
 
 if(CLIENT) then
     language.Add( "Tool.e2converter.name", "PropToHolo" )
@@ -44,7 +41,8 @@ if(CLIENT) then
     WE2PtoH.Props = WE2PtoH.Props or {}
     WE2PtoH.BaseProp = WE2PtoH.BaseProp or nil
     WE2PtoH.Menu = WE2PtoH.Menu or nil
-    
+    WE2PtoH.Menu.Count = WE2PtoH.Menu.Count or nil
+    WE2PtoH.Menu.Path = WE2PtoH.Menu.Path or nil
 
     local function FindEnt(pos, rad )
         local t = {}
@@ -85,11 +83,11 @@ if(CLIENT) then
 
 
 
-    function func_PropToHolo_distance( player, tool, args )
-        _dist = tonumber(args[1])
+    -- function func_PropToHolo_distance( player, tool, args )
+    --     _dist = tonumber(args[1])
        
-	end
-	concommand.Add( "PropToHolo_distance", func_PropToHolo_distance )
+	-- end
+	-- concommand.Add( "PropToHolo_distance", func_PropToHolo_distance )
 
     function func_PropToHolo_convert()
    
@@ -103,10 +101,13 @@ if(CLIENT) then
             [[if( changed(IDload) && IDload ==]] .. id..[[){]] .. "\n" .. string .. "}\n"
         
         end
-        
+        local path_ = string.Trim(WE2PtoH.Menu.Path:GetText())
+        if(path_ == "") then 
 
-      
-        local dir_ = "expression2/E2holoConvert/".. string.Replace(string.Replace(game.GetIPAddress(),".","_"),":","_") 
+            path_ = "E2holoConvert"
+        end 
+
+        local dir_ = "expression2/" .. path_ .. "/".. string.Replace(string.Replace(game.GetIPAddress(),".","_"),":","_") 
         local name_file = dir_ .. "/".. os.date( "%H_%M_%S - %d_%m_%Y" , os.time() ) ..".txt"
         file.CreateDir( dir_ )
 
@@ -221,16 +222,14 @@ if( CurCount > AllCount){
     function _add_new_entity__( AimEnt )
         if(!table.HasValue( WE2PtoH.Props, AimEnt )) then 
             table.insert( WE2PtoH.Props, AimEnt )
-            for i,k in pairs( WE2PtoH.Props) do 
-                cl_chat_log(" [ENT] " .. tostring(k))
-            end
+            
         end 
 
     end 
 
 	concommand.Add( "PropToHolo_convert", func_PropToHolo_convert )
 
-    local _vis = false
+    local _vis = true
     function _draw__()
         _vis = !_vis
         if(!_vis) then 
@@ -265,23 +264,27 @@ if( CurCount > AllCount){
     function _rebuild_menu( )
        
         WE2PtoH.Menu:ClearControls()
-        WE2PtoH.Menu:AddControl( "Label", { Text = "Prop capture distance", Description	= "" }  )
-        WE2PtoH.Menu:AddControl( "Slider",  { Label	= "Distance",
-					Type	= "Float",
-					Min		= 100,
-					Max		= 1000,
-					Command = "PropToHolo_distance",
-					Description = "Distance"}	 )
+        -- WE2PtoH.Menu:AddControl( "Label", { Text = "Prop capture distance", Description	= "" }  )
+        -- WE2PtoH.Menu:AddControl( "Slider",  { Label	= "Distance",
+		-- 			Type	= "Float",
+		-- 			Min		= 100,
+		-- 			Max		= 1000,
+		-- 			Command = "PropToHolo_distance",
+		-- 			Description = "Distance"}	 )
         WE2PtoH.Menu:AddControl( "Button", { Label = "Convert to E2", Command = "PropToHolo_convert", Description = ""  } )
         WE2PtoH.Menu:AddControl( "Button", { Label = "Draw 3D Box", Command = "PropToHolo_3Dbox", Description = ""  } )
+        WE2PtoH.Menu:AddControl( "Label", { Text = "Selected props", Description	= "" }  )
+       
+        WE2PtoH.Menu.Count = WE2PtoH.Menu:AddControl( "Label", { Text = "Count: 0", Description	= "" }  )
+
+        WE2PtoH.Menu:AddControl( "Label", { Text = "  Save in folder {data/<path>}", Description	= "" }  )
+        WE2PtoH.Menu.Path = WE2PtoH.Menu:AddControl( "DTextEntry", {  }  )
+        WE2PtoH.Menu.Path:SetText( "E2holoConvert" )
     end 
 
 	concommand.Add( "PropToHolo_RebuildMenu", _rebuild_menu )
-    RunConsoleCommand( "PropToHolo_distance", "100")
-    cl_chat_log( "Reload menu" )
-
-
-    
+    RunConsoleCommand( "PropToHolo_3Dbox")
+    cl_chat_log( "Reload menu" ) 
 end 
  
 
@@ -289,10 +292,6 @@ end
 function TOOL:LeftClick( trace )
     if(CLIENT) then
 
-
-         
-
-         
         local AimEnt = trace.Entity
         local AimPos = trace.HitPos
         -- if(input.IsKeyDown( KEY_LSHIFT)) then
@@ -316,25 +315,20 @@ function TOOL:LeftClick( trace )
             _add_new_entity__(AimEnt)
             
         end 
-    
-    
-    end 
+        if(WE2PtoH.Menu.Count != nil ) then 
 
-    
- 	
+             WE2PtoH.Menu.Count:SetText("Count: " .. #WE2PtoH.Props )
+        end 
+    end 	
 end 
 function TOOL:Holster( trace, direction )
     //if(SERVER) then return end 
-    
 end
 function TOOL:FreezeMovement()
     
 end
 function TOOL:RightClick( trace )
     if(SERVER) then return end 
-
-
-    //RunConsoleCommand( "PropToHolo_convert")
 end 
  
 
@@ -359,7 +353,7 @@ function TOOL:Reload( trace )
         WE2PtoH.Props = {}
         WE2PtoH.BaseProp = nil
     end 
-    cl_chat_log("Clear all select")
+     
 end
 function TOOL.BuildCPanel( Panel )
     WE2PtoH.Menu = Panel
